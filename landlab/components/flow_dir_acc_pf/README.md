@@ -6,7 +6,7 @@
 
 #TODO
 
-SpeciesEvolver is introduced [in this paper]()
+FlowDirAccPf is introduced [in this paper]()
 
 
 ## Documentation and installation
@@ -24,10 +24,10 @@ Landlab.
 A ``FlowDirAccPf`` tutorial exists in the form of a Jupyter Notebooks accessible
 through the following links:
 
-- [Launch the tutorial](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/species_evolution/Introduction_to_SpeciesEvolver.ipynb)
+- [Launch the tutorial](https://mybinder.org/v2/gh/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/PriorityFlood/PriorityFlood%20--%20Performance%20for%20real%20DEMs.ipynb)
 as interactive notebook in your browser, with no need to install software,
 launched using Binder.
-- [A static version of the same tutorial](https://nbviewer.jupyter.org/github/landlab/landlab/blob/master/notebooks/tutorials/species_evolution/Introduction_to_SpeciesEvolver.ipynb)
+- [A static version of the same tutorial](https://nbviewer.jupyter.org/github/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/PriorityFlood/PriorityFlood%20--%20Performance%20for%20real%20DEMs.ipynb)
 - All Landlab tutorials can be launched from [this directory](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb) using Binder.
 
 ## Get or give help
