@@ -1,7 +1,7 @@
 #!/usr/env/python
 
 """
-flow_accumulator_pf.py: Component to accumulate flow and calculate drainage area using the priority flood algorithm.
+flow_DirAcc_Pf.py: Component to accumulate flow and calculate drainage area using the priority flood algorithm.
 
 flow_accumulator_pf is a wrapper of the flow accumulators provided in RichDEM, supporting similar flow metrics overviewed here: https://richdem.readthedocs.io/en/latest/flow_metrics.html
 
@@ -10,6 +10,7 @@ flow_accumulator_pf is a wrapper of the flow accumulators provided in RichDEM, s
 
 import sys,os
 import numpy as np
+import numpy.matlib as npm
 import richdem as rd
 import copy as cp
 from landlab import (  # for type tests
@@ -599,7 +600,7 @@ class FlowDirAccPf(Component):
             # make sure sum of proportions equals 1
             if flowMetric in PSINGLE_FMs:   
                 # update slope; make pointer to slope location first, in order to not break connection to the slope memory location previously established
-                slope_temp=np.divide(np.subtract(np.matlib.repmat(self.grid.at_node["topographic__elevation"].reshape(self.grid.number_of_nodes,1),1,8),
+                slope_temp=np.divide(np.subtract(npm.repmat(self.grid.at_node["topographic__elevation"].reshape(self.grid.number_of_nodes,1),1,8),
                               self.grid.at_node["topographic__elevation"][rcvrs]),self.grid.dx*np.sqrt(self.grid.at_node["SQUARED_length_adjacent"]))
                 slope_temp[rcvrs == -1]=0
             else:
@@ -607,7 +608,7 @@ class FlowDirAccPf(Component):
                 props_Pf = props_Pf.astype(np.float64) #should be float64
                 # Now, make sure sum is 1 in 64 bits
                 props_Pf[props_Pf==-1]=0
-                rc64_temp = props_Pf/np.matlib.repmat(np.reshape(props_Pf.sum(axis = 1),[props_Pf.shape[0],1]),1,8)
+                rc64_temp = props_Pf/npm.repmat(np.reshape(props_Pf.sum(axis = 1),[props_Pf.shape[0],1]),1,8)
                 props_Pf[props_Pf[:,0]!=1,:] = rc64_temp[props_Pf[:,0]!=1,:]
                 props_Pf[props_Pf==0]=-1
            
@@ -620,7 +621,7 @@ class FlowDirAccPf(Component):
                 else:
                     self._hill_rcvs[:] = rcvrs
                     # update slope; make pointer to slope location first, in order to not break connection to the slope memory location previously established
-                    self._hill_slope[:] =np.divide(np.subtract(np.matlib.repmat(self.grid.at_node["topographic__elevation"].reshape(self.grid.number_of_nodes,1),1,8),
+                    self._hill_slope[:] =np.divide(np.subtract(npm.repmat(self.grid.at_node["topographic__elevation"].reshape(self.grid.number_of_nodes,1),1,8),
                                   self.grid.at_node["topographic__elevation"][rcvrs]),self.grid.dx*np.sqrt(self.grid.at_node["SQUARED_length_adjacent"]))
                     self._hill_slope[rcvrs == -1]=0
                 
@@ -633,7 +634,7 @@ class FlowDirAccPf(Component):
                 else:
                     self._rcvs[:] = rcvrs
                     # update slope; make pointer to slope location first, in order to not break connection to the slope memory location previously established
-                    self._slope[:] =np.divide(np.subtract(np.matlib.repmat(self.grid.at_node["topographic__elevation"].reshape(self.grid.number_of_nodes,1),1,8),
+                    self._slope[:] =np.divide(np.subtract(npm.repmat(self.grid.at_node["topographic__elevation"].reshape(self.grid.number_of_nodes,1),1,8),
                                   self.grid.at_node["topographic__elevation"][rcvrs]),self.grid.dx*np.sqrt(self.grid.at_node["SQUARED_length_adjacent"]))
                     self._slope[rcvrs == -1]=0
                     
