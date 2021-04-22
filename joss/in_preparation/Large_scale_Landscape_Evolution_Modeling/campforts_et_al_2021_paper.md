@@ -86,9 +86,11 @@ The ``terrainbento`` project maintains a separate repository containing tutorial
 
 ## Figures
 
-# <img src="Figures/Large_scale_Landscape_Evolution_Modeling/Figures/RealTopo_Perf_Default_FA_vs_PF_Linear_demo.png" alt="RealTopo_Perf_Default_FA_vs_PF_Linear_demo" style="zoom:24%;" /><img src="Figures/Large_scale_Landscape_Evolution_Modeling/Figures/RealTopo_Perf_Default_FA_vs_PF_log_demo.png" alt="RealTopo_Perf_Default_FA_vs_PF_log_demo" style="zoom:30%;" />
+# <img src="Figures/RealTopo_Perf_Default_FA_vs_PF_linear_demo.png" alt="RealTopo_Perf_Default_FA_vs_PF_linear_demo" style="zoom:30%;" />
 
-**Figure 1**: Performance of of default flow accumulator versus Priorirty Flood flow accumulator for DEMs of increasing size 
+<img src="Figures/RealTopo_Perf_Default_FA_vs_PF_log_demo.png" alt="RealTopo_Perf_Default_FA_vs_PF_log_demo" style="zoom:30%;" />
+
+**Figure 1**: Performance of of default flow accumulator versus Priority Flood flow accumulator for DEMs of increasing size 
 
 <img src="Figures/Performance_Default_FA_vs_PF_Linear.png" alt="Performance of differnt Flow accumualtors when running the mass conservative Space LEM (linear axes)." style="zoom:24%;" /><img src="Figures/Performance_Default_FA_vs_PF_Log.png" alt="Performance of differnt Flow accumualtors when running the mass conservative Space LEM (log axes)." style="zoom:24%;" />
 
