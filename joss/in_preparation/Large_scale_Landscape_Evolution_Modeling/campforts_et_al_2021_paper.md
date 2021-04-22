@@ -86,7 +86,7 @@ The ``terrainbento`` project maintains a separate repository containing tutorial
 
 ## Figures
 
-# <img src="Figures/RealTopo_Perf_Default_FA_vs_PF_linear_demo.png" alt="RealTopo_Perf_Default_FA_vs_PF_linear_demo" style="zoom:30%;" />
+# <img src="Figures/Performance_Default_FA_vs_PF_Linear.png" alt="RealTopo_Perf_Default_FA_vs_PF_linear_demo" style="zoom:30%;" />
 
 <img src="Figures/RealTopo_Perf_Default_FA_vs_PF_log_demo.png" alt="RealTopo_Perf_Default_FA_vs_PF_log_demo" style="zoom:30%;" />
 
