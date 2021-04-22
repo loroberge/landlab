@@ -1,5 +1,5 @@
 ---
-title: 'Large scale simulation of long term landscape evolution and sediment dynamics with Landlab v2.0:
+title: 'Efficient large scale simulation of landscape evolution and sediment dynamics with Landlab v2.0:
   - Python
   - Landlab
 authors:
