@@ -224,17 +224,18 @@ class Hylands(Component):
         
         H_el[H_el>self._max_H_el]=self._max_H_el    
         
-        beta = np.arctan(S_slope)
+        beta_rad = np.arctan(S_slope)
         sc_rad = np.arctan(self._slope_crit)
         Hc = (4 * self._C_eff/(self._grav*self._rho_r))\
-            *np.divide(np.multiply(np.sin(beta),np.cos(sc_rad)),(1-np.cos(beta-sc_rad)))
+            *np.divide(np.multiply(np.sin(beta_rad),np.cos(sc_rad)),(1-np.cos(beta_rad-sc_rad)))
         
             
      
         
         # %% Spatial probability v2
         p_S = np.divide(H_el,Hc)
-        p_S[beta<=sc_rad] = 0
+        p_S[beta_rad<=sc_rad] = 0
+        p_S[p_S>1]=1
         p_L = p_S/self._LS_returnTime
         p =1-np.exp(-p_L*dt)
         slides = np.random.rand(p.size)<p
