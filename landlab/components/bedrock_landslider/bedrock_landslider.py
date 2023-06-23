@@ -5,6 +5,8 @@ Benjamin Campforts
 
 import numpy as np
 
+from collections import defaultdict
+
 from landlab import Component
 from landlab.grid.nodestatus import NodeStatus
 
@@ -246,6 +248,7 @@ class BedrockLandslider(Component):
         landslides_on_boundary_nodes=True,
         critical_sliding_nodes=None,
         min_deposition_slope=0,
+        output_landslide_node_ids=False,
     ):
         """Initialize the BedrockLandslider model.
 
@@ -284,6 +287,10 @@ class BedrockLandslider(Component):
             Provide list with critical nodes where landslides have to initiate
             This cancels the stochastic part of the algorithm and allows the
             user to form landslides at the provided critical nodes.
+        output_landslide_node_ids : bool , optional
+            Output critical landslide node IDs as an array. Also output the IDs
+            of all nodes that erode and deposit as dictionaries pointing to
+            their parent critical node.
         """
         super().__init__(grid)
 
@@ -321,12 +328,17 @@ class BedrockLandslider(Component):
         self._landslides_on_boundary_nodes = landslides_on_boundary_nodes
         self._critical_sliding_nodes = critical_sliding_nodes
         self._min_deposition_slope = min_deposition_slope
+        self._output_landslide_node_ids = output_landslide_node_ids
 
         # Data structures to store properties of simulated landslides.
         self._landslides_size = []
         self._landslides_volume = []
         self._landslides_volume_sed = []
         self._landslides_volume_bed = []
+        if self._output_landslide_node_ids:
+            self._critical_landslide_node_ids = []
+            self._eroded_node_ids = defaultdict(list)
+            self._deposited_node_ids = defaultdict(list)
 
         # Check input values
         if phi >= 1.0 or phi < 0.0:
@@ -407,6 +419,10 @@ class BedrockLandslider(Component):
         self._landslides_volume = []
         self._landslides_volume_sed = []
         self._landslides_volume_bed = []
+        if self._output_landslide_node_ids:
+            self._critical_landslide_node_ids = []
+            self._eroded_node_ids = defaultdict(list)
+            self._deposited_node_ids = defaultdict(list)
 
         # Identify flooded nodes
         flood_status = self.grid.at_node["flood_status_code"]
@@ -461,9 +477,14 @@ class BedrockLandslider(Component):
             critical_landslide_nodes = np.array(self._critical_sliding_nodes)
 
         # output variables
-        suspended_sed = 0.0
+        suspended_sed = 0.0        
         if self._verbose_landslides:
             print(f"nbSlides = {len(critical_landslide_nodes)}")
+        if self._output_landslide_node_ids:
+            self._critical_landslide_node_ids = critical_landslide_nodes
+            for crit_node in critical_landslide_nodes:
+                self._eroded_node_ids[crit_node] = []
+                self._deposited_node_ids[crit_node] = []
 
         store_cumul_volume = 0.0
         while critical_landslide_nodes.size > 0:
