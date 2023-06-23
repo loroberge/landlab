@@ -611,7 +611,10 @@ class BedrockLandslider(Component):
                         landslide__ero[upstream_neighbors[0]] = (
                             sed_landslide_ero + bed_landslide_ero
                         )
-
+                        
+                        if self._output_landslide_node_ids:
+                            self._eroded_node_ids[crit_node].extend(upstream_neighbors[0])
+                        
                     upstream_neighbors = np.delete(upstream_neighbors, 0, 0)
 
                 store_volume = store_volume_sed + store_volume_bed
