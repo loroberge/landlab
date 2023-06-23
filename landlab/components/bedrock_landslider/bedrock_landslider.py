@@ -385,6 +385,33 @@ class BedrockLandslider(Component):
         The list is reset every time the _landslide_erosion function is called
         """
         return self._landslides_volume_bed
+    
+    @property
+    def critical_landslide_node_ids(self):
+        """
+        List containing node IDs of all critical landslide nodes.
+        The list is reset every time the _landslide_erosion function is called
+        """
+        return self._critical_landslide_node_ids
+
+    @property
+    def eroded_node_ids(self):
+        """
+        Dictionary containing node IDs of all eroding nodes in each landslide
+        and their parent critical landslide node.
+        The list is reset every time the _landslide_erosion function is called
+        """
+        return self._eroded_node_ids
+    
+    @property
+    def deposited_node_ids(self):
+        """
+        Dictionary containing node IDs of all depositing nodes deposited by
+        each landslide and their parent critical landslide node.
+        The list is reset every time the _landslide_erosion function is called
+        """
+        return self._deposited_node_ids
+    
 
     def _landslide_erosion(self, dt):
         """
