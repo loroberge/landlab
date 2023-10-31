@@ -312,7 +312,7 @@ class ConcentrationTrackerProductionDecay(Component):
         # Zero out array
         self._P_sed_in_timestep[:] = 0
                         
-        SORT OUT EQUATION BELOW
+        ################## SORT OUT EQUATION BELOW
         
         # Calculate production
         with np.errstate(divide="ignore", invalid="ignore"):
@@ -323,7 +323,7 @@ class ConcentrationTrackerProductionDecay(Component):
         # Replace nan values (from dividing by zero soil depth)
         np.nan_to_num(self._P_sed_in_timestep, copy=False)
                 
-        SORT OUT EQUATION ABOVE
+        ################## SORT OUT EQUATION ABOVE
         
         
     def decay_in_sediment(self, dt):
@@ -339,7 +339,7 @@ class ConcentrationTrackerProductionDecay(Component):
         # Zero out array
         self._D_sed_in_timestep[:] = 0
                         
-        SORT OUT EQUATION BELOW
+        ################## SORT OUT EQUATION BELOW
         
         # Calculate decay
         with np.errstate(divide="ignore", invalid="ignore"):
@@ -350,7 +350,7 @@ class ConcentrationTrackerProductionDecay(Component):
         # Replace nan values (from dividing by zero soil depth)
         np.nan_to_num(self._D_sed_in_timestep, copy=False)
                         
-        SORT OUT EQUATION ABOVE
+        ################## SORT OUT EQUATION ABOVE
         
    
     def production_in_bedrock(self, dt):
@@ -366,7 +366,7 @@ class ConcentrationTrackerProductionDecay(Component):
         # Zero out array
         self._P_br_in_timestep[:] = 0
         
-        SORT OUT EQUATION BELOW
+        ################## SORT OUT EQUATION BELOW
         
         # Calculate production
         with np.errstate(divide="ignore", invalid="ignore"):
@@ -377,7 +377,7 @@ class ConcentrationTrackerProductionDecay(Component):
         # Replace nan values (from dividing by zero soil depth)
         np.nan_to_num(self._P_br_in_timestep, copy=False)
         
-        SORT OUT EQUATION ABOVE
+        ################## SORT OUT EQUATION ABOVE
             
         
     def decay_in_bedrock(self, dt):
@@ -393,7 +393,7 @@ class ConcentrationTrackerProductionDecay(Component):
         # Zero out array
         self._D_br_in_timestep[:] = 0
                 
-        SORT OUT EQUATION BELOW
+        ################## SORT OUT EQUATION BELOW
         
         # Calculate decay
         with np.errstate(divide="ignore", invalid="ignore"):
@@ -404,7 +404,7 @@ class ConcentrationTrackerProductionDecay(Component):
         # Replace nan values (from dividing by zero soil depth)
         np.nan_to_num(self._D_br_in_timestep, copy=False)
                 
-        SORT OUT EQUATION ABOVE
+        ################## SORT OUT EQUATION ABOVE
         
 
     def calculate_concentration(self, dt):
