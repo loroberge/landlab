@@ -19,57 +19,87 @@ class ConcentrationTrackerForDiffusion(Component):
 
     .. math::
 
-        ∂CH/∂t = [-(∂q_x C_x)/∂x - (∂q_y C_y)/∂y] + C_br*H_brw + PH + DH
+        ∂CH / ∂t = [-(∂q_x C_x) / ∂x - (∂q_y C_y) / ∂y] + C_br * H_brw + PH + DH
 
     where :math:`H` is sediment depth, :math:`q_x` and :math:`q_y` are sediment
     fluxed in the x and y directions, :math:`C_br` is concentration in parent
     bedrock, :math:`H_brw` is the height of bedrock weathered into soil,
     :math:`P` is the local production rate, :math:`D` is the local decay rate.
 
-    NOTE: This component requires a soil flux field calculated by a hillslope
-    diffusion component and must be run after every diffusion step. Currently,
-    this component WILL ONLY WORK IF COUPLED with the DepthDependentDiffuser or
-    the DepthDependentTaylorDiffuser (without the dynamic timestep option).
+    .. note::
+
+        This component requires a soil flux field calculated by a hillslope diffusion
+        component and must be run after every diffusion step. Currently, this component
+        WILL ONLY WORK IF COUPLED with the :class:`~.DepthDependentDiffuser` or the
+        :class:`~.DepthDependentTaylorDiffuser` (without the dynamic timestep option).
 
     Examples
     --------
+
     A 1-D hillslope:
 
     >>> import numpy as np
-    >>> from landlab import RasterModelGrid
+    >>> from landlab import NodeStatus, RasterModelGrid
     >>> from landlab.components import DepthDependentDiffuser
     >>> from landlab.components import ConcentrationTrackerForDiffusion
-    >>> mg = RasterModelGrid((3, 5),xy_spacing=2.)
-    >>> mg.set_status_at_node_on_edges(right=4, top=4, left=4, bottom=4)
-    >>> mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
-    >>> c = mg.add_zeros('sediment_property__concentration', at='node')
-    >>> h = mg.add_zeros("soil__depth", at="node")
-    >>> z_br = mg.add_zeros("bedrock__elevation", at="node")
-    >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> _ = mg.add_zeros('soil_production__rate', at='node')
-    >>> c[8] += 1
-    >>> h += mg.node_x
-    >>> z_br += mg.node_x
-    >>> z += z_br + h
+
+    >>> mg = RasterModelGrid((3, 5), xy_spacing=2.0)
+
+    >>> mg.set_status_at_node_on_edges(
+    ...     right=NodeStatus.CLOSED,
+    ...     top=NodeStatus.CLOSED,
+    ...     left=NodeStatus.CLOSED,
+    ...     bottom=NodeStatus.CLOSED,
+    ... )
+    >>> mg.status_at_node[5] = NodeStatus.FIXED_VALUE
+    >>> mg.status_at_node.reshape(mg.shape)
+    array([[4, 4, 4, 4, 4],
+           [1, 0, 0, 0, 4],
+           [4, 4, 4, 4, 4]], dtype=uint8)
+
+    >>> mg.at_node["sediment_property__concentration"] = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 1.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> mg.at_node["soil__depth"] = mg.node_x.copy()
+    >>> mg.at_node["bedrock__elevation"] = mg.node_x.copy()
+    >>> mg.at_node["topographic__elevation"] = (
+    ...     mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
+    ... )
+    >>> _ = mg.add_zeros("soil_production__rate", at="node")
+
     >>> ddd = DepthDependentDiffuser(mg)
     >>> ct = ConcentrationTrackerForDiffusion(mg)
-    >>> ddd.run_one_step(1.)
-    >>> ct.run_one_step(1.)
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([4.11701964, 8.01583689, 11.00247875]))
+    >>> ddd.run_one_step(1.0)
+    >>> ct.run_one_step(1.0)
+    >>> np.allclose(
+    ...     mg.at_node["topographic__elevation"].reshape(mg.shape),
+    ...     [
+    ...         [0.0, 4.0, 8.0, 12.0, 16.0],
+    ...         [0.0, 4.11701964, 8.01583689, 11.00247875, 16.0],
+    ...         [0.0, 4.0, 8.0, 12.0, 16.0],
+    ...     ],
+    ... )
     True
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0., 0.24839685, 1.]))
+    >>> np.allclose(
+    ...     mg.at_node["sediment_property__concentration"].reshape(mg.shape),
+    ...     [
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...         [0.0, 0.0, 0.24839685, 1.0, 0.0],
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     ],
+    ... )
     True
 
     Now, a 2-D pyramid-shaped hillslope.
 
-    >>> mg = RasterModelGrid((5, 5),xy_spacing=2.)
-    >>> c = mg.add_zeros('sediment_property__concentration', at='node')
+    >>> mg = RasterModelGrid((5, 5), xy_spacing=2.0)
+    >>> c = mg.add_zeros("sediment_property__concentration", at="node")
     >>> h = mg.add_zeros("soil__depth", at="node")
     >>> z_br = mg.add_zeros("bedrock__elevation", at="node")
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> _ = mg.add_zeros('soil_production__rate', at='node')
+    >>> _ = mg.add_zeros("soil_production__rate", at="node")
     >>> c[12] += 1
     >>> h += 2
     >>> z_br += 8
@@ -78,32 +108,80 @@ class ConcentrationTrackerForDiffusion(Component):
     >>> z += z_br + h
     >>> ddd = DepthDependentDiffuser(mg)
     >>> ct = ConcentrationTrackerForDiffusion(mg)
-    >>> ddd.run_one_step(1.)
-    >>> ct.run_one_step(1.)
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([6.        ,  7.13533528,  6.        ,
-    ...                       7.13533528,  8.27067057,  7.13533528,
-    ...                       6.        ,  7.13533528,  6.         ]))
+    >>> ddd.run_one_step(1.0)
+    >>> ct.run_one_step(1.0)
+    >>> np.allclose(
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             6.0,
+    ...             7.13533528,
+    ...             6.0,
+    ...             7.13533528,
+    ...             8.27067057,
+    ...             7.13533528,
+    ...             6.0,
+    ...             7.13533528,
+    ...             6.0,
+    ...         ]
+    ...     ),
+    ... )
     True
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0.        ,  0.38079708,  0.        ,
-    ...                       0.38079708,  1.        ,  0.38079708,
-    ...                       0.        ,  0.38079708,  0.         ]))
+    >>> np.allclose(
+    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             0.0,
+    ...             0.38079708,
+    ...             0.0,
+    ...             0.38079708,
+    ...             1.0,
+    ...             0.38079708,
+    ...             0.0,
+    ...             0.38079708,
+    ...             0.0,
+    ...         ]
+    ...     ),
+    ... )
     True
 
     And running one more step.
 
-    >>> ddd.run_one_step(1.)
-    >>> ct.run_one_step(1.)
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([5.52060315,  6.62473963,  5.52060315,
-    ...                       6.62473963,  8.00144598,  6.62473963,
-    ...                       5.52060315,  6.62473963,  5.52060315 ]))
+    >>> ddd.run_one_step(1.0)
+    >>> ct.run_one_step(1.0)
+    >>> np.allclose(
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             5.52060315,
+    ...             6.62473963,
+    ...             5.52060315,
+    ...             6.62473963,
+    ...             8.00144598,
+    ...             6.62473963,
+    ...             5.52060315,
+    ...             6.62473963,
+    ...             5.52060315,
+    ...         ]
+    ...     ),
+    ... )
     True
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0.09648071,  0.44750673,  0.09648071,
-    ...                       0.44750673,  1.        ,  0.44750673,
-    ...                       0.09648071,  0.44750673,  0.09648071 ]))
+    >>> np.allclose(
+    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             0.09648071,
+    ...             0.44750673,
+    ...             0.09648071,
+    ...             0.44750673,
+    ...             1.0,
+    ...             0.44750673,
+    ...             0.09648071,
+    ...             0.44750673,
+    ...             0.09648071,
+    ...         ]
+    ...     ),
+    ... )
     True
 
     Finally, the same 2D hillslope now using the DepthDependentTaylorDiffuser.
@@ -115,12 +193,12 @@ class ConcentrationTrackerForDiffusion(Component):
     pick a timestep that is stable.
 
     >>> from landlab.components import DepthDependentTaylorDiffuser
-    >>> mg = RasterModelGrid((5, 5),xy_spacing=2.)
-    >>> c = mg.add_zeros('sediment_property__concentration', at='node')
+    >>> mg = RasterModelGrid((5, 5), xy_spacing=2.0)
+    >>> c = mg.add_zeros("sediment_property__concentration", at="node")
     >>> h = mg.add_zeros("soil__depth", at="node")
     >>> z_br = mg.add_zeros("bedrock__elevation", at="node")
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> _ = mg.add_zeros('soil_production__rate', at='node')
+    >>> _ = mg.add_zeros("soil_production__rate", at="node")
     >>> c[12] += 1
     >>> h += 2
     >>> z_br += 8
@@ -131,15 +209,39 @@ class ConcentrationTrackerForDiffusion(Component):
     >>> ct = ConcentrationTrackerForDiffusion(mg)
     >>> ddtd.run_one_step(0.4)
     >>> ct.run_one_step(0.4)
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([6.        ,  7.30826823,  6.        ,
-    ...                       7.30826823,  8.61653645,  7.30826823,
-    ...                       6.        ,  7.30826823,  6.         ]))
+    >>> np.allclose(
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             6.0,
+    ...             7.30826823,
+    ...             6.0,
+    ...             7.30826823,
+    ...             8.61653645,
+    ...             7.30826823,
+    ...             6.0,
+    ...             7.30826823,
+    ...             6.0,
+    ...         ]
+    ...     ),
+    ... )
     True
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0.        ,  0.26436925,  0.        ,
-    ...                       0.26436925,  1.        ,  0.26436925,
-    ...                       0.        ,  0.26436925,  0.         ]))
+    >>> np.allclose(
+    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             0.0,
+    ...             0.26436925,
+    ...             0.0,
+    ...             0.26436925,
+    ...             1.0,
+    ...             0.26436925,
+    ...             0.0,
+    ...             0.26436925,
+    ...             0.0,
+    ...         ]
+    ...     ),
+    ... )
     True
 
     References
@@ -199,14 +301,6 @@ class ConcentrationTrackerForDiffusion(Component):
             "mapping": "node",
             "doc": "Mass concentration of property per unit volume of sediment",
         },
-        "sediment_property__mass_flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "-^2/y",
-            "mapping": "link",
-            "doc": "Mass of property fluxing along links",
-        },
         "bedrock_property__concentration": {
             "dtype": float,
             "intent": "out",
@@ -238,6 +332,7 @@ class ConcentrationTrackerForDiffusion(Component):
         grid,
         concentration_initial=0,
         concentration_in_bedrock=0,
+        concentration_from_weathering=None,
         local_production_rate=0,
         local_decay_rate=0,
     ):
@@ -250,6 +345,13 @@ class ConcentrationTrackerForDiffusion(Component):
             Initial concentration in soil/sediment, -/m^3
         concentration_in_bedrock: positive float, array, or field name (optional)
             Concentration in bedrock, -/m^3
+        concentration_from_weathering: positive float or array (optional)
+            Concentration generated during the weathering process, -/m^3.
+            Defaults to None, which causes all weathered bedrock to retain its 
+            original parent material concentration (concentration_in_bedrock)
+            as it weathers to soil. 
+            Use this parameter to differentiate between the concentration in 
+            weathered material compared to its parent bedrock.
         local_production_rate: float, array, or field name (optional)
             Rate of local production, -/m^3/yr
         local_decay_rate: float, array, or field name (optional)
@@ -262,6 +364,7 @@ class ConcentrationTrackerForDiffusion(Component):
         # use setters for C_init, C_br, P, and D defined below
         self.C_init = concentration_initial
         self.C_br = concentration_in_bedrock
+        self.C_w = concentration_from_weathering
         self.P = local_production_rate
         self.D = local_decay_rate
 
@@ -275,11 +378,11 @@ class ConcentrationTrackerForDiffusion(Component):
         self.initialize_output_fields()
 
         # Define concentration field (if all zeros, then add C_init)
-        if not self._grid.at_node["sediment_property__concentration"].any():
+        if np.allclose(self._grid.at_node["sediment_property__concentration"], 0.0):
             self._grid.at_node["sediment_property__concentration"] += self.C_init
         self._concentration = self._grid.at_node["sediment_property__concentration"]
 
-        if not self._grid.at_node["bedrock_property__concentration"].any():
+        if np.allclose(self._grid.at_node["sediment_property__concentration"], 0.0):
             self._grid.at_node["bedrock_property__concentration"] += self.C_br
         self.C_br = self._grid.at_node["bedrock_property__concentration"]
 
@@ -295,22 +398,7 @@ class ConcentrationTrackerForDiffusion(Component):
         self._C_links = np.zeros(self._grid.number_of_links)
 
         # Sediment property mass field (at links, to calculate dQCdx)
-        self._QC_links = self._grid.at_link["sediment_property__mass_flux"]
-
-        # Check that concentration values are within physical limits
-        if isinstance(concentration_initial, np.ndarray):
-            if concentration_initial.any() < 0:
-                raise ValueError("Concentration cannot be negative.")
-        else:
-            if concentration_initial < 0:
-                raise ValueError("Concentration cannot be negative.")
-
-        if isinstance(concentration_in_bedrock, np.ndarray):
-            if concentration_in_bedrock.any() < 0:
-                raise ValueError("Concentration in bedrock cannot be negative.")
-        else:
-            if concentration_in_bedrock < 0:
-                raise ValueError("Concentration in bedrock cannot be negative.")
+        self._QC_links = np.zeros(self._grid.number_of_links)
 
     @property
     def C_init(self):
@@ -321,6 +409,11 @@ class ConcentrationTrackerForDiffusion(Component):
     def C_br(self):
         """Concentration in bedrock (kg/m^3)."""
         return self._C_br
+    
+    @property
+    def C_w(self):
+        """Concentration from the weathering process (kg/m^3)."""
+        return self._C_w
 
     @property
     def P(self):
@@ -334,11 +427,23 @@ class ConcentrationTrackerForDiffusion(Component):
 
     @C_init.setter
     def C_init(self, new_val):
+        if np.any(new_val < 0.0):
+            raise ValueError("Concentration cannot be negative")
         self._C_init = return_array_at_node(self._grid, new_val)
 
     @C_br.setter
     def C_br(self, new_val):
+        if np.any(new_val < 0.0):
+            raise ValueError("Concentration in bedrock cannot be negative")
         self._C_br = return_array_at_node(self._grid, new_val)
+        
+    @C_w.setter
+    def C_w(self, new_val):
+        if new_val == None:
+            self._C_w = self._C_br
+        if np.any(new_val < 0.0):
+            raise ValueError("Concentration cannot be negative")
+        self._C_w = new_val
 
     @P.setter
     def P(self, new_val):
@@ -370,39 +475,37 @@ class ConcentrationTrackerForDiffusion(Component):
         self._C_links[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
         # Calculate QC at links (sediment flux times concentration)
-        self._grid.at_link["QC"] = (
-            self._grid.at_link["soil__flux"][:] * self._C_links[:]
-        )
+        self._qc_at_link = self._grid.at_link["soil__flux"] * self._C_links
 
         # Calculate flux concentration divergence
-        dQCdx = self._grid.calc_flux_div_at_node(self._grid.at_link["QC"])
+        dQCdx = self._grid.calc_flux_div_at_node(self._qc_at_link)
 
         # Calculate other components of mass balance equation
-        with np.errstate(divide="ignore", invalid="ignore"):
-            C_local = C_old * (self._soil__depth_old / self._soil__depth)
-            C_from_weathering = (
-                self._C_br * (self._soil_prod_rate * dt) / self._soil__depth
-            )
-            Production = (dt * self._P / 2) * (
-                self._soil__depth_old / self._soil__depth + 1
-            )
-            Decay = (dt * self._D / 2) * (self._soil__depth_old / self._soil__depth + 1)
+        is_soil = self._soil__depth > 0.0
+        
+        old_depth_over_new = np.divide(self._soil__depth_old, self._soil__depth, where=is_soil)
+        old_depth_over_new[~is_soil] = 0.0
+        
+        dt_over_depth = np.divide(dt, self._soil__depth, where=is_soil)
+        dt_over_depth[~is_soil] = 0.0
+        
+        C_local = C_old * old_depth_over_new
+        C_from_weathering = np.divide(
+            self._C_w * self._soil_prod_rate * dt, self._soil__depth, where=is_soil
+        )
+        Production = (dt * self._P / 2.0) * (old_depth_over_new + 1.0)
+        Decay = (dt * self._D / 2.0) * (old_depth_over_new + 1.0)
 
-            # Calculate concentration
-            self._concentration[:] = (
-                C_local
-                + C_from_weathering
-                + (dt / self._soil__depth) * (-dQCdx)
-                + Production
-                - Decay
-            )
-
-        # Replace nan values (from dividing by zero soil depth)
-        np.nan_to_num(C_local, copy=False)
-        np.nan_to_num(C_from_weathering, copy=False)
-        np.nan_to_num(Production, copy=False)
-        np.nan_to_num(Decay, copy=False)
-        np.nan_to_num(self._concentration, copy=False)
+        # Calculate concentration
+        self._concentration[:] = (
+            C_local
+            + C_from_weathering
+            + dt_over_depth * (-dQCdx)
+            + Production
+            - Decay
+        )
+        
+        self._concentration[~is_soil] = 0.0
 
         # Update old soil depth to new value
         self._soil__depth_old = self._soil__depth.copy()
